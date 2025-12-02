@@ -1,0 +1,4 @@
+PyQt6>=6.0.0
+pdfplumber>=0.9.0
+pyinstaller>=5.13.0
+

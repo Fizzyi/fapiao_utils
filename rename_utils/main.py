@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QCheckBox, QGroupBox, QComboBox, QTextBrowser, QListWidgetItem)
 from PyQt6.QtCore import Qt
 
-from rename_utils.func import rename_main
+from func import rename_main
 
 
 class InvoiceRenameTool(QMainWindow):
