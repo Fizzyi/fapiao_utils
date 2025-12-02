@@ -1,0 +1,58 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+__pycache__
+login/__pycache__
+extensions/__pycache__
+kxl-e-proxy-server
+logs
+extensions/logs
+extensions/__pycache__
+### VS Code ###
+.vscode/
+/logs
+.idea
+
+__pycache__
+test
+file
+
+# docker
+packages/xl-td-collector-v3.tar.gz
+docs/方案1/方案1.pdf
+docs/方案2/方案2.pdf
+docs/**/*.pdf
+
+*.tar.gz
+*.zip
+*.tgz
+config
+app.env
+
+
+
