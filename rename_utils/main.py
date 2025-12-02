@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QLabel, QPushButton, QListWidget, QFileDialog, QMessageBox,
                              QCheckBox, QGroupBox, QComboBox, QTextBrowser, QListWidgetItem)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPalette, QColor
 
 from func import rename_main
 
@@ -33,8 +34,14 @@ class InvoiceRenameTool(QMainWindow):
         self.setWindowTitle("发票PDF批量重命名工具")
         self.setGeometry(100, 100, 850, 700)  # 调整窗口尺寸
 
-        # 中心部件和主布局
+        # 中心部件和主布局（整体浅色日间风格）
         central_widget = QWidget()
+        central_widget.setStyleSheet("""
+            QWidget {
+                background-color: #f0f2f5;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+        """)
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         main_layout.setSpacing(20)
@@ -42,9 +49,20 @@ class InvoiceRenameTool(QMainWindow):
 
         # 1. 标题区域
         title_label = QLabel("发票PDF批量重命名工具")
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        title_label.setStyleSheet("""
+            font-size: 22px;
+            font-weight: 600;
+            color: #1f2933;
+        """)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label = QLabel("从发票内容自动解析并批量重命名 PDF 文件")
+        subtitle_label.setStyleSheet("""
+            font-size: 12px;
+            color: #62727b;
+        """)
+        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title_label)
+        main_layout.addWidget(subtitle_label)
 
         # 2. 核心功能区：参数组合+排序（直接显示，无需切换）
         core_layout = QVBoxLayout()
@@ -54,21 +72,66 @@ class InvoiceRenameTool(QMainWindow):
 
         # 左侧：参数选择分组框
         left_group = QGroupBox("选择要包含的参数（可多选）")
-        left_group.setStyleSheet("font-size: 12px;")
+        left_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 13px;
+                font-weight: 500;
+                border: 1px solid #e0e4e8;
+                border-radius: 8px;
+                margin-top: 18px;
+                background-color: #ffffff;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 4px;
+                background-color: transparent;
+                color: #3e4c59;
+            }
+        """)
         left_layout = QVBoxLayout(left_group)
 
         # 存储参数复选框
         self.param_checkboxes = {}
         param_list = list(self.invoice_params.items())
 
-        # 分两列显示复选框
+        # 一列展示复选框
         left_col = QVBoxLayout()
         for i, (param_key, param_name) in enumerate(param_list):
             checkbox = QCheckBox(param_name)
-            checkbox.setStyleSheet("font-size: 11px; margin: 5px 0;")
+            # 现代风格的参数选择：更大的勾选框和统一主色
+            checkbox.setStyleSheet("""
+                QCheckBox {
+                    font-size: 12px;
+                    margin: 4px 0;
+                    padding: 4px 4px;
+                    color: #334e68;
+                }
+                QCheckBox::indicator {
+                    width: 18px;
+                    height: 18px;
+                }
+                QCheckBox::indicator:unchecked {
+                    border: 1px solid #cbd2e1;
+                    border-radius: 4px;
+                    background: #ffffff;
+                }
+                QCheckBox::indicator:checked {
+                    border: 1px solid #2563eb;
+                    border-radius: 4px;
+                    background: #2563eb;
+                }
+                QCheckBox:hover {
+                    background-color: #eef2ff;
+                    border-radius: 4px;
+                }
+                QCheckBox:checked {
+                    background-color: #eef2ff;
+                    border-radius: 4px;
+                }
+            """)
             checkbox.stateChanged.connect(self.on_param_check)  # 绑定勾选事件
             self.param_checkboxes[param_key] = checkbox
-            # 前3个放左列，后4个放右列
             left_col.addWidget(checkbox)
 
         left_layout.addLayout(left_col)
@@ -77,52 +140,40 @@ class InvoiceRenameTool(QMainWindow):
         # 中间：排序按钮（垂直排列）
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        btn_layout.setSpacing(15)
+        btn_layout.setSpacing(12)
 
-        # 上移按钮
-        self.up_btn = QPushButton("↑ 上移")
-        self.up_btn.setStyleSheet("""
+        primary_button_style = """
             QPushButton {
-                background-color: #3498db;
-                color: white;
+                background-color: #2563eb;
+                color: #ffffff;
                 border: none;
                 padding: 8px 16px;
                 font-size: 12px;
-                border-radius: 4px;
-                min-width: 80px;
+                border-radius: 999px;
+                min-width: 90px;
             }
             QPushButton:hover {
-                background-color: #2980b9;
+                background-color: #1d4ed8;
+            }
+            QPushButton:pressed {
+                background-color: #1e40af;
             }
             QPushButton:disabled {
-                background-color: #bdc3c7;
-                color: #ecf0f1;
+                background-color: #cbd2e1;
+                color: #9fb3c8;
             }
-        """)
+        """
+
+        # 上移按钮
+        self.up_btn = QPushButton("↑ 上移")
+        self.up_btn.setStyleSheet(primary_button_style)
         self.up_btn.clicked.connect(self.move_param_up)
         self.up_btn.setDisabled(True)  # 初始禁用
         btn_layout.addWidget(self.up_btn)
 
         # 下移按钮
         self.down_btn = QPushButton("↓ 下移")
-        self.down_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #9b59b6;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                font-size: 12px;
-                border-radius: 4px;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #8e44ad;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-                color: #ecf0f1;
-            }
-        """)
+        self.down_btn.setStyleSheet(primary_button_style)
         self.down_btn.clicked.connect(self.move_param_down)
         self.down_btn.setDisabled(True)  # 初始禁用
         btn_layout.addWidget(self.down_btn)
@@ -131,12 +182,43 @@ class InvoiceRenameTool(QMainWindow):
 
         # 右侧：选中参数顺序显示
         right_group = QGroupBox("当前参数顺序（选中项可排序）")
-        right_group.setStyleSheet("font-size: 12px;")
+        right_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 13px;
+                font-weight: 500;
+                border: 1px solid #e0e4e8;
+                border-radius: 8px;
+                margin-top: 18px;
+                background-color: #ffffff;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 4px;
+                background-color: transparent;
+                color: #3e4c59;
+            }
+        """)
         right_layout = QVBoxLayout(right_group)
 
         # 用QListWidget显示选中参数的顺序
         self.order_list = QListWidget()
-        self.order_list.setStyleSheet("font-size: 11px;")
+        # 高亮当前选中项，方便和左侧复选框对应
+        self.order_list.setStyleSheet("""
+            QListWidget {
+                font-size: 11px;
+                background-color: #ffffff;
+                border: none;
+            }
+            QListWidget::item {
+                padding: 4px 6px;
+            }
+            QListWidget::item:selected {
+                background-color: #3498db;
+                color: #ffffff;
+                border-radius: 4px;
+            }
+        """)
         self.order_list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)  # 单选
         self.order_list.itemClicked.connect(self.on_order_item_selected)  # 绑定选中事件
         right_layout.addWidget(self.order_list)
@@ -148,29 +230,43 @@ class InvoiceRenameTool(QMainWindow):
         # 分隔符设置
         separator_layout = QHBoxLayout()
         separator_label = QLabel("参数分隔符：")
-        separator_label.setStyleSheet("font-size: 13px; font-weight: 500;")
+        separator_label.setStyleSheet("font-size: 13px; font-weight: 500; color: #3e4c59;")
         self.separator_combo = QComboBox()
         self.separator_combo.addItems(["_（下划线）", "-（短横线）", "（空格）", "·（点）", "无分隔符"])
         self.separator_combo.setCurrentIndex(0)  # 默认下划线
-        self.separator_combo.setStyleSheet("font-size: 12px; padding: 5px; min-width: 150px;")
+        self.separator_combo.setStyleSheet("""
+            QComboBox {
+                font-size: 12px;
+                padding: 6px 8px;
+                min-width: 150px;
+                border-radius: 6px;
+                border: 1px solid #d0d7de;
+                background-color: #ffffff;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+        """)
         separator_layout.addWidget(separator_label)
         separator_layout.addWidget(self.separator_combo)
         separator_layout.addStretch()
         core_layout.addLayout(separator_layout)
 
-        # 预览区域（修复后样式）
+        # 预览区域（卡片样式）
         preview_label = QLabel("命名预览（实时更新）：")
-        preview_label.setStyleSheet("font-size: 13px; font-weight: 500;")
+        preview_label.setStyleSheet("font-size: 13px; font-weight: 500; color: #3e4c59;")
         core_layout.addWidget(preview_label)
 
         self.preview_browser = QTextBrowser()
         self.preview_browser.setStyleSheet("""
-            font-size: 12px; 
-            padding: 10px; 
-            background-color: #f8f9fa;
-            color: #333333;  /* 深灰色字体，确保可见 */
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
+            QTextBrowser {
+                font-size: 12px;
+                padding: 10px;
+                background-color: #ffffff;
+                color: #243b53;
+                border: 1px solid #e0e4e8;
+                border-radius: 8px;
+            }
         """)
         self.preview_browser.setFixedHeight(60)
         core_layout.addWidget(self.preview_browser)
@@ -183,12 +279,22 @@ class InvoiceRenameTool(QMainWindow):
         # 3. 文件选择区域
         file_layout = QVBoxLayout()
         file_label = QLabel("已选择的文件：")
-        file_label.setStyleSheet("font-size: 14px; font-weight: 500;")
+        file_label.setStyleSheet("font-size: 14px; font-weight: 500; color: #3e4c59;")
         file_layout.addWidget(file_label)
 
         # 文件列表显示
         self.file_list = QListWidget()
-        self.file_list.setStyleSheet("font-size: 12px;")
+        self.file_list.setStyleSheet("""
+            QListWidget {
+                font-size: 12px;
+                background-color: #ffffff;
+                border: 1px solid #e0e4e8;
+                border-radius: 8px;
+            }
+            QListWidget::item {
+                padding: 4px 6px;
+            }
+        """)
         file_layout.addWidget(self.file_list)
 
         # 按钮布局
@@ -197,15 +303,18 @@ class InvoiceRenameTool(QMainWindow):
         self.select_btn = QPushButton("批量选择PDF文件")
         self.select_btn.setStyleSheet("""
             QPushButton {
-                background-color: #3498db;
-                color: white;
+                background-color: #2563eb;
+                color: #ffffff;
                 border: none;
                 padding: 10px 20px;
                 font-size: 12px;
-                border-radius: 4px;
+                border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #2980b9;
+                background-color: #1d4ed8;
+            }
+            QPushButton:pressed {
+                background-color: #1e40af;
             }
         """)
         self.select_btn.clicked.connect(self.select_files)
@@ -215,15 +324,18 @@ class InvoiceRenameTool(QMainWindow):
         self.clear_btn = QPushButton("清空选择")
         self.clear_btn.setStyleSheet("""
             QPushButton {
-                background-color: #e74c3c;
+                background-color: #e11d48;
                 color: white;
                 border: none;
                 padding: 10px 20px;
                 font-size: 12px;
-                border-radius: 4px;
+                border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #c0392b;
+                background-color: #be123c;
+            }
+            QPushButton:pressed {
+                background-color: #9f1239;
             }
         """)
         self.clear_btn.clicked.connect(self.clear_files)
@@ -235,21 +347,24 @@ class InvoiceRenameTool(QMainWindow):
         # 4. 保存目录选择
         save_layout = QHBoxLayout()
         save_label = QLabel("保存目录：")
-        save_label.setStyleSheet("font-size: 13px;")
+        save_label.setStyleSheet("font-size: 13px; color: #3e4c59;")
         self.save_dir_label = QLabel("默认：原文件所在目录")
-        self.save_dir_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
+        self.save_dir_label.setStyleSheet("font-size: 12px; color: #7b8794;")
         self.save_dir_btn = QPushButton("更改保存目录")
         self.save_dir_btn.setStyleSheet("""
             QPushButton {
-                background-color: #9b59b6;
+                background-color: #2563eb;
                 color: white;
                 border: none;
                 padding: 8px 16px;
                 font-size: 12px;
-                border-radius: 4px;
+                border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #8e44ad;
+                background-color: #1d4ed8;
+            }
+            QPushButton:pressed {
+                background-color: #1e40af;
             }
         """)
         self.save_dir_btn.clicked.connect(self.select_save_dir)
@@ -263,20 +378,23 @@ class InvoiceRenameTool(QMainWindow):
         self.execute_btn = QPushButton("开始批量重命名")
         self.execute_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2ecc71;
-                color: white;
+                background-color: #2563eb;
+                color: #ffffff;
                 border: none;
-                padding: 12px 30px;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 4px;
+                padding: 12px 32px;
+                font-size: 15px;
+                font-weight: 600;
+                border-radius: 999px;
             }
             QPushButton:hover {
-                background-color: #27ae60;
+                background-color: #1d4ed8;
+            }
+            QPushButton:pressed {
+                background-color: #1e40af;
             }
             QPushButton:disabled {
-                background-color: #bdc3c7;
-                color: #ecf0f1;
+                background-color: #cbd2e1;
+                color: #9fb3c8;
             }
         """)
         self.execute_btn.clicked.connect(self.batch_rename)
@@ -495,6 +613,21 @@ class InvoiceRenameTool(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # 使用 Fusion 风格并强制日间模式浅色调
+    app.setStyle("Fusion")
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor("#f5f5f5"))
+    palette.setColor(QPalette.ColorRole.Base, QColor("#ffffff"))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor("#f0f0f0"))
+    palette.setColor(QPalette.ColorRole.Text, QColor("#2c3e50"))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor("#2c3e50"))
+    palette.setColor(QPalette.ColorRole.Button, QColor("#ffffff"))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor("#2c3e50"))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor("#3498db"))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
+    app.setPalette(palette)
+
     window = InvoiceRenameTool()
     window.show()
     sys.exit(app.exec())
