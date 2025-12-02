@@ -48,3 +48,13 @@ exe = EXE(
     icon='rename_utils/icon.ico',  # 使用 ICO 格式图标
 )
 
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='发票重命名工具',
+)
